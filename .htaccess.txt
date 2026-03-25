@@ -1,0 +1,57 @@
+# Запрет доступа к конфигурационным файлам
+<Files "config.php">
+    Order Allow,Deny
+    Deny from all
+</Files>
+
+<Files "init_database.php">
+    Order Allow,Deny
+    Deny from all
+</Files>
+
+# Запрет листинга директорий
+Options -Indexes
+
+# Включение перенаправления
+RewriteEngine On
+
+# Перенаправление всех запросов на index.html кроме реальных файлов
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php [L,QSA]
+
+# Установка кодировки
+AddDefaultCharset utf-8
+
+# Заголовки для API
+<IfModule mod_headers.c>
+    Header always set Access-Control-Allow-Origin "*"
+    Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+    Header always set Access-Control-Allow-Headers "Content-Type"
+    
+    # Безопасность HTTP заголовков
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+# Защита от распространенных атак
+<IfModule mod_rewrite.c>
+    # Блокировка плохих ботов
+    RewriteCond %{HTTP_USER_AGENT} (libwww-perl|wget|python|nikto|curl|scan|java|winhttp|clshttp|loader) [NC,OR]
+    RewriteCond %{HTTP_USER_AGENT} (<|>|'|%0A|%0D|%27|%3C|%3E|%00) [NC,OR]
+    RewriteCond %{HTTP_USER_AGENT} (;|<|>|'|"|\)|\(|%0A|%0D|%22|%27|%28|%3C|%3E|%00).*(libwww-perl|wget|python|nikto|curl|scan|java|winhttp|HTTrack|clshttp|archiver|loader|email|harvest|extract|grab|miner) [NC]
+    RewriteRule .* - [F,L]
+</IfModule>
+
+# Запрет доступа к логинам
+<Files "*.log">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Кэширование для безопасности
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/html "access plus 0 seconds"
+</IfModule>
